@@ -1,0 +1,128 @@
+🌱 Project Structure Overview
+Tech Stack:
+
+Frontend: Vanilla JavaScript, HTML, CSS (can be upgraded to React)
+
+Backend + Auth: Firebase (Authentication + Realtime Database)
+
+Notifications: Placeholder for browser-based scheduling
+
+📁 Folder Structure
+
+HomeGardeningAssistant_App/
+├── index.html
+├── style.css
+├── app.js
+├── firebase-config.js
+├── README.md
+└── assets/
+
+
+🔐 firebase-config.js
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getDatabase(app);
+
+
+
+🌿 index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home Gardening Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Welcome to Gardening Assistant 🌱</h1>
+  
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
+
+  <section id="plant-database"></section>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+
+
+🎨 style.css
+
+body {
+  font-family: sans-serif;
+  background-color: #e6f2e6;
+  padding: 20px;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px;
+}
+
+
+🌻 app.js
+
+import { auth, db } from './firebase-config.js';
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = e.target.email.value;
+  const password = e.target.password.value;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    alert("Logged in as " + userCredential.user.email);
+    loadPlants();
+  } catch (error) {
+    alert("Login failed: " + error.message);
+  }
+});
+
+function loadPlants() {
+  const plantRef = ref(db, 'plants');
+  get(plantRef).then(snapshot => {
+    if (snapshot.exists()) {
+      const plantDb = snapshot.val();
+      const container = document.getElementById("plant-database");
+      container.innerHTML = "<h2>Plant Database</h2>";
+      Object.values(plantDb).forEach(plant => {
+        container.innerHTML += `
+          <div>
+            <h3>${plant.name}</h3>
+            <p>Watering: ${plant.watering}</p>
+            <p>Sunlight: ${plant.sunlight}</p>
+            <p>Soil: ${plant.soil}</p>
+          </div>
+        `;
+      });
+    } else {
+      alert("No plant data found.");
+    }
+  });
+}
+
+
